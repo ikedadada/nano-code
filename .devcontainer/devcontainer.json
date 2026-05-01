@@ -1,0 +1,15 @@
+{
+  "name": "nano-code-devcontainer",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "workspaceFolder": "/nano-code",
+  "remoteUser": "vscode",
+  "mounts": ["source=${localWorkspaceFolder},target=/nano-code,type=bind"],
+  "postCreateCommand": "sudo chown -R vscode:vscode /nano-code && if [ ! -f package.json ]; then bun init -y; fi && bun install || true",
+  "customizations": {
+    "vscode": {
+      "extensions": ["biomejs.biome", "openai.chatgpt"]
+    }
+  }
+}
