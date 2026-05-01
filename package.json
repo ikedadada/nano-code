@@ -1,5 +1,5 @@
 {
-  "name": "/nano-code",
+  "name": "nano-code",
   "module": "index.ts",
   "type": "module",
   "private": true,
