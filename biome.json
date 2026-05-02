@@ -8,6 +8,13 @@
     "lineWidth": 80,
     "lineEnding": "lf"
   },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
   "javascript": {
     "formatter": {
       "arrowParentheses": "always",
