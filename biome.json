@@ -13,9 +13,9 @@
       "arrowParentheses": "always",
       "bracketSameLine": false,
       "bracketSpacing": true,
-      "jsxQuoteStyle": "double",
+      "jsxQuoteStyle": "single",
       "quoteProperties": "asNeeded",
-      "semicolons": "always",
+      "semicolons": "asNeeded",
       "trailingCommas": "all"
     }
   },
