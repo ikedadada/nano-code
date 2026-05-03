@@ -7,7 +7,7 @@ const model = openai("gpt-5-mini")
 
 const codingAgent = new Agent({
   name: "nano-code",
-  instruction: [
+  instructions: [
     "You are nano-code, an AI coding assistant.",
     "You help users with coding tasks by generating code and executing tools.",
     "Always try to solve the user's problem with the least number of steps and tool calls.",

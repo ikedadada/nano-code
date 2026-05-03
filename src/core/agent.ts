@@ -4,7 +4,7 @@ import type { LanguageModel, Message, Tool } from "./types"
 
 interface AgentConfig {
   name: string
-  instruction: string
+  instructions: string
   model: LanguageModel
   tools: Tool[]
   maxSteps?: number
@@ -39,7 +39,7 @@ export class Agent {
   ) => Promise<boolean>
   constructor(config: AgentConfig) {
     this.name = config.name
-    this.instructions = config.instruction
+    this.instructions = config.instructions
     this.model = config.model
     this.tools = config.tools
     this.maxSteps = config.maxSteps ?? 5
@@ -48,7 +48,7 @@ export class Agent {
   }
 
   async generate(userPrompt: string): Promise<{ text: string }> {
-    const messages: Message[] = [
+    let messages: Message[] = [
       { role: "system", content: this.instructions },
       { role: "user", content: userPrompt },
     ]
@@ -59,6 +59,8 @@ export class Agent {
 
     while (currentStep < this.maxSteps) {
       currentStep++
+
+      messages = this.manageContext(messages)
 
       const response = await generateText({
         model: this.model,
@@ -150,5 +152,49 @@ export class Agent {
     }
 
     return { text: finalText }
+  }
+
+  private manageContext(messages: Message[]): Message[] {
+    // Simple limit: determine by character count (e.g., assume 30,000 characters is roughly 10k-15k tokens)
+    // Adjust according to the context window of the model being used
+
+    const CHAR_LIMIT = 30000
+
+    let totalLength = messages.reduce((sum, m) => sum + m.content.length, 0)
+
+    if (totalLength < CHAR_LIMIT) return messages
+
+    console.log(
+      `\n [Context] Compressing conversation history (current: ${totalLength} characters)`,
+    )
+
+    const systemMessage = messages[0]
+    if (!systemMessage) return messages
+
+    const recentMessages = messages.slice(-4)
+
+    const middleMessages = messages.slice(1, -4).map((msg) => {
+      if (msg.role === "tool" && msg.content.length > 2000) {
+        return {
+          ...msg,
+          content: `(Previous tool execution results were omitted: ${msg.content.length} characters)`,
+        }
+      }
+      return msg
+    })
+
+    totalLength =
+      systemMessage.content.length +
+      middleMessages.reduce((sum, m) => sum + m.content.length, 0) +
+      recentMessages.reduce((sum, m) => sum + m.content.length, 0)
+
+    while (totalLength > CHAR_LIMIT && middleMessages.length > 0) {
+      const removed = middleMessages.shift()
+      if (removed) {
+        totalLength -= removed.content.length
+      }
+    }
+
+    return [systemMessage, ...middleMessages, ...recentMessages]
   }
 }
