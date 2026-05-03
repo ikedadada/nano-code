@@ -26,17 +26,15 @@ export const createGoogle = (config?: CreateGoogleConfig): Provider => {
         .map((message) => message.content)
         .join("\n")
 
-      const tools = params.tools?.length
-        ? ([
-            {
-              functionDeclarations: params.tools.map((tool) => ({
-                name: tool.name,
-                description: tool.description,
-                parameters: tool.parameters,
-              })),
-            },
-          ] as ToolListUnion)
-        : undefined
+      const tools = [
+        {
+          functionDeclarations: params.tools.map((tool) => ({
+            name: tool.name,
+            description: tool.description,
+            parameters: tool.parameters,
+          })),
+        },
+      ] as ToolListUnion
 
       try {
         const response = await client.models.generateContent({
@@ -46,7 +44,7 @@ export const createGoogle = (config?: CreateGoogleConfig): Provider => {
             systemInstruction,
             temperature: params.temperature,
             maxOutputTokens: params.maxTokens,
-            ...(tools && tools.length > 0 && { tools }),
+            ...(tools.length > 0 && { tools }),
           },
         })
 
@@ -64,7 +62,7 @@ export const createGoogle = (config?: CreateGoogleConfig): Provider => {
               part,
             ): part is typeof part & {
               functionCall: NonNullable<typeof part.functionCall>
-            } => !!part.functionCall,
+            } => part.functionCall !== undefined,
           )
           .map((part, i) => ({
             toolCallId: `call_${i}`, // Gemini API does not return an ID for tool calls

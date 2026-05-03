@@ -31,7 +31,7 @@ type SystemMessage = {
 type AssistantMessage = {
   role: "assistant"
   content: string
-  toolCalls?: ToolCall[]
+  toolCalls: ToolCall[]
 }
 
 type ToolMessage = {
@@ -58,13 +58,13 @@ export type Usage = {
 export type GenerateTextResult = {
   text: string
   finishReason: "stop" | "length" | "content_filter" | "tool_call" | "error"
-  toolCalls?: ToolCall[]
-  usage?: Usage
+  toolCalls: ToolCall[]
+  usage: Usage
 }
 
 export type GenerateParams = {
   messages: Message[]
-  tools?: Tool[]
+  tools: Tool[]
   temperature?: number
   maxTokens?: number
   signal?: AbortSignal // for timeout or cancellation

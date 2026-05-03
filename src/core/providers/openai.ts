@@ -25,7 +25,7 @@ export const createOpenAI = (config?: CreateOpenAIConfig): Provider => {
 
   return (modelId: string): LanguageModel => ({
     async doGenerate(params: GenerateParams): Promise<GenerateTextResult> {
-      const tools = params.tools?.map((tool) => ({
+      const tools = params.tools.map((tool) => ({
         type: "function" as const,
         function: {
           name: tool.name,
@@ -41,7 +41,7 @@ export const createOpenAI = (config?: CreateOpenAIConfig): Provider => {
             messages: convertMessages(params.messages),
             temperature: params.temperature,
             max_tokens: params.maxTokens,
-            ...(tools && tools.length > 0 && { tools }),
+            ...(tools.length > 0 && { tools }),
           },
           {
             signal: params.signal,
@@ -62,15 +62,16 @@ export const createOpenAI = (config?: CreateOpenAIConfig): Provider => {
 
         const message = choice.message
 
-        const toolCalls: ToolCall[] | undefined = message.tool_calls
-          ?.filter((call) => {
-            return call.type === "function"
-          })
-          .map((call) => ({
-            toolCallId: call.id,
-            name: call.function.name,
-            args: JSON.parse(call.function.arguments),
-          }))
+        const toolCalls: ToolCall[] =
+          message.tool_calls
+            ?.filter((call) => {
+              return call.type === "function"
+            })
+            .map((call) => ({
+              toolCallId: call.id,
+              name: call.function.name,
+              args: JSON.parse(call.function.arguments),
+            })) || []
 
         return {
           text: choice.message.content || "",

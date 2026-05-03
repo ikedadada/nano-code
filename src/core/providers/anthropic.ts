@@ -35,14 +35,15 @@ export const createAnthropic = (config?: CreateAnthropicConfig): Provider => {
           text: message.content,
         }))
 
-      const tools: ToolUnion[] | undefined = params.tools?.map((tool) => ({
-        name: tool.name,
-        description: tool.description,
-        input_schema: {
-          type: "object",
-          properties: tool.parameters,
-        },
-      }))
+      const tools: ToolUnion[] =
+        params.tools.map((tool) => ({
+          name: tool.name,
+          description: tool.description,
+          input_schema: {
+            type: "object",
+            properties: tool.parameters,
+          },
+        })) || []
 
       try {
         const completion = await client.messages.create(
@@ -52,7 +53,7 @@ export const createAnthropic = (config?: CreateAnthropicConfig): Provider => {
             messages: convertMessages(params.messages),
             temperature: params.temperature,
             max_tokens: params.maxTokens || 4096,
-            ...(tools && tools.length > 0 && { tools }),
+            ...(tools.length > 0 && { tools }),
           },
           {
             signal: params.signal,
@@ -75,7 +76,7 @@ export const createAnthropic = (config?: CreateAnthropicConfig): Provider => {
         return {
           text,
           finishReason: mapFinishReason(completion.stop_reason),
-          toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+          toolCalls: toolCalls,
           usage: {
             promptTokens: completion.usage.input_tokens,
             completionTokens: completion.usage.output_tokens,

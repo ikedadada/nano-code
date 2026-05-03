@@ -9,13 +9,18 @@ const messages: Message[] = [
 ]
 
 const openai = createOpenAI()
-const result = await generateText({ model: openai("gpt-5-mini"), messages })
+const result = await generateText({
+  model: openai("gpt-5-mini"),
+  messages,
+  tools: [],
+})
 console.log("OpenAI", result.text)
 
 const anthropic = createAnthropic()
 const result2 = await generateText({
   model: anthropic("claude-haiku-4-5-20251001"),
   messages,
+  tools: [],
 })
 console.log("Anthropic", result2.text)
 
@@ -23,6 +28,7 @@ const google = createGoogle()
 const result3 = await generateText({
   model: google("gemini-2.5-flash"),
   messages,
+  tools: [],
 })
 console.log("Google", result3.text)
 
