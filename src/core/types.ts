@@ -3,7 +3,7 @@ export type Tool = {
   name: string
   description: string
   parameters: Record<string, unknown>
-  excecute: (args: Record<string, unknown>) => Promise<string>
+  execute: (args: Record<string, unknown>) => Promise<string>
 }
 
 export type ToolCall = {
