@@ -35,6 +35,7 @@ export const writeFile: Tool = {
     "The path should be relative to the workspace root and must not contain any path traversal characters (e.g., '..').",
     "If the file already exists, it will be overwritten. If the file does not exist, it will be created along with any necessary directories.",
   ].join(""),
+  needsApproval: true,
   parameters: {
     type: "object",
     properties: {

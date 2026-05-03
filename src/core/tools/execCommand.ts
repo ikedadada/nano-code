@@ -159,6 +159,7 @@ export const execCommand: Tool = {
     "Arguments that resolve to paths must be within the workspace.",
     "Output is limited to 2024 characters to prevent excessive token usage.",
   ].join(" "),
+  needsApproval: true,
   parameters: {
     type: "object",
     properties: {

@@ -55,6 +55,7 @@ export const readFile: Tool = {
     'Files larger than 100 KB cannot be read to protect the context window. path should be relative to the workspace root and must not contain any path traversal characters (e.g., "..").',
     "The path can be specified as either a relative or absolute path. the content of a file within the workspace.",
   ].join(""),
+  needsApproval: false,
   parameters: {
     type: "object",
     properties: {

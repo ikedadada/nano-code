@@ -46,6 +46,7 @@ export const editFile: Tool = {
     "Returns an error if oldText is found multiple times, so specify a range that uniquely identifies the target section.",
     "This uses fewer tokens than reading and writing the entire file.",
   ].join(""),
+  needsApproval: true,
   parameters: {
     type: "object",
     properties: {
