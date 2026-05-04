@@ -1,25 +1,42 @@
 import * as path from "node:path"
+import { parseArgs } from "node:util"
 import { Agent } from "../core/agent"
 import { loadInstructions } from "../core/prompts"
 import { createModelFromEnv } from "../core/providers/modelFactory"
 import { allTools } from "../core/tools"
 
 const main = async () => {
-  const args = process.argv.slice(2)
+  const { values, positionals } = parseArgs({
+    args: process.argv.slice(2),
+    options: {
+      yolo: { type: "boolean", default: false },
+      verbose: { type: "boolean", default: false },
+    },
+    allowPositionals: true,
+  })
 
-  if (args.length === 0) {
-    console.error("Please provide a prompt as an argument")
-    console.error('Usage: bun run agent "Your prompt here"')
-    process.exit(1)
+  const isIssueDriven = process.env.ISSUE_BODY !== undefined
+
+  let userPrompt = ""
+
+  if (isIssueDriven) {
+    userPrompt = process.env.ISSUE_BODY || ""
+  } else {
+    if (positionals.length === 0) {
+      console.error("Please provide a prompt as an argument")
+      console.error('Usage: bun run agent "Your prompt here"')
+      process.exit(1)
+    }
+    userPrompt = positionals.join(" ")
   }
-
-  const userPrompt = args.join(" ")
 
   const model = createModelFromEnv()
 
   const workspaceRoot = path.resolve(process.cwd(), "workspace")
 
-  const instructions = loadInstructions(workspaceRoot)
+  const instructions = loadInstructions(workspaceRoot, isIssueDriven)
+
+  const yoloMode = values.yolo
 
   const agent = new Agent({
     name: "nano-code",
@@ -27,6 +44,8 @@ const main = async () => {
     instructions,
     tools: allTools,
     maxSteps: 15,
+    verbose: values.verbose,
+    approvalFunc: yoloMode ? async () => true : undefined,
   })
 
   console.log("Start agent")

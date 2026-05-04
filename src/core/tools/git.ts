@@ -1,0 +1,175 @@
+import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "node:fs"
+import { join } from "node:path"
+import type { Tool } from "../types"
+import { execCommand } from "./execCommand"
+
+const WORKSPACE_ROOT = join(process.cwd(), "workspace")
+
+function validateBranchName(name: string): void {
+  if (!name || name.length > 120) {
+    throw new Error("Invalid branch name")
+  }
+  if (name.startsWith("-") || name.startsWith(":")) {
+    throw new Error("Branch name cannot start with '-' or ':'")
+  }
+  if (/\s/.test(name)) {
+    throw new Error("Branch name cannot contain whitespace")
+  }
+  if (!/^[A-Za-z0-9._/-]+$/.test(name)) {
+    throw new Error("Branch name contains invalid characters")
+  }
+  if (
+    name.includes("..") ||
+    name.includes("//") ||
+    name.endsWith("/") ||
+    name.endsWith(".")
+  ) {
+    throw new Error("Invalid branch name format")
+  }
+}
+
+function validateFilePath(filePath: string): void {
+  if (!filePath) {
+    throw new Error("File path is empty")
+  }
+  if (filePath.startsWith("-")) {
+    throw new Error("File path cannot start with '-'")
+  }
+  if (/[[\r\n\0]]/.test(filePath)) {
+    throw new Error("File path contains invalid control characters")
+  }
+}
+
+function writeTempFile(content: string, prefix: string): string {
+  if (!existsSync(WORKSPACE_ROOT)) {
+    mkdirSync(WORKSPACE_ROOT, { recursive: true })
+  }
+  const tempPath = join(WORKSPACE_ROOT, `.${prefix}-${Date.now()}.txt`)
+  writeFileSync(tempPath, content, "utf-8")
+  return tempPath
+}
+
+export const createBranch: Tool = {
+  name: "createBranch",
+  description:
+    "Create a new Git branch. If the branch already exists, force reset it to the current HEAD.",
+  needsApproval: true,
+  parameters: {
+    type: "object",
+    properties: {
+      branchName: {
+        type: "string",
+        description: "Branch name to create (e.g. 'fix/error-handling')",
+      },
+    },
+    required: ["branchName"],
+  },
+  execute: async (args) => {
+    const parsedArgs = args as { branchName: string }
+
+    const branchName = parsedArgs.branchName
+    validateBranchName(branchName)
+
+    try {
+      const result = await execCommand.execute({
+        command: `git switch -c ${branchName}`,
+      })
+      return `Branch created: ${branchName}\n${result}`
+    } catch (error) {
+      throw new Error(`Branch creation failed: ${error}`)
+    }
+  },
+}
+
+export const commit: Tool = {
+  name: "commit",
+  description:
+    "Commit changes with a message. If there are no changes, do not commit.",
+  needsApproval: true,
+  parameters: {
+    type: "object",
+    properties: {
+      message: {
+        type: "string",
+        description: "Commit message",
+      },
+      files: {
+        type: "array",
+        items: {
+          type: "string",
+        },
+        description: "List of file paths to commit",
+      },
+    },
+    required: ["message", "files"],
+  },
+  execute: async (args) => {
+    const parsedArgs = args as { message: string; files: string[] }
+
+    if (!parsedArgs.message || /[\0]/.test(parsedArgs.message)) {
+      throw new Error("Invalid commit message")
+    }
+
+    try {
+      const status = await execCommand.execute({
+        command: `git status --porcelain`,
+      })
+
+      if (!status.trim()) {
+        return "No changes to commit (already up to date)"
+      }
+
+      for (const file of parsedArgs.files) {
+        validateFilePath(file)
+        await execCommand.execute({
+          command: `git add -- ${file}`,
+        })
+      }
+
+      const messageFile = writeTempFile(parsedArgs.message, "commit-message")
+      try {
+        const result = await execCommand.execute({
+          command: `git commit -F ${messageFile}`,
+        })
+        return `Committed: ${parsedArgs.message}\n${result}`
+      } finally {
+        try {
+          unlinkSync(messageFile)
+        } catch {
+          /* ignore */
+        }
+      }
+    } catch (error) {
+      throw new Error(`Commit failed: ${error}`)
+    }
+  },
+}
+
+export const pushBranch: Tool = {
+  name: "pushBranch",
+  description:
+    "Push the current branch to the remote repository. If it is a new branch, set the upstream.",
+  needsApproval: true,
+  parameters: {
+    type: "object",
+    properties: {
+      branchName: {
+        type: "string",
+        description: "Branch name to push",
+      },
+    },
+    required: ["branchName"],
+  },
+  execute: async (args) => {
+    const parseArgs = args as { branchName: string }
+    validateBranchName(parseArgs.branchName)
+    try {
+      const result = await execCommand.execute({
+        command: `git push -u origin ${parseArgs.branchName}`,
+      })
+      return `Branch pushed: ${parseArgs.branchName}\n${result}`
+    } catch (error) {
+      throw new Error(`Push failed: ${error}`)
+    }
+  },
+}

@@ -19,3 +19,5 @@ Calculation utility library
 - Note: CI tests currently pass for the repository; no functional changes required in this PR
 
 Update: This file was updated by an automated chore to demonstrate PR creation.
+
+Chore: small documentation touch to demonstrate repository update and PR creation (no code changes).
