@@ -15,12 +15,13 @@ const main = async () => {
     allowPositionals: true,
   })
 
-  const isIssueDriven = process.env.ISSUE_BODY !== undefined
+  const isIssueDriven =
+    process.env.ISSUE_BODY !== undefined || process.env.ISSUE_TEXT !== undefined
 
   let userPrompt = ""
 
   if (isIssueDriven) {
-    userPrompt = process.env.ISSUE_BODY || ""
+    userPrompt = process.env.ISSUE_BODY || process.env.ISSUE_TEXT || ""
   } else {
     if (positionals.length === 0) {
       console.error("Please provide a prompt as an argument")
