@@ -9,7 +9,7 @@ interface AgentConfig {
   tools: Tool[]
   maxSteps?: number
   verbose?: boolean
-  appprovalFunc?: (
+  approvalFunc?: (
     toolName: string,
     args: Record<string, unknown>,
   ) => Promise<boolean>
@@ -44,7 +44,7 @@ export class Agent {
     this.tools = config.tools
     this.maxSteps = config.maxSteps ?? 5
     this.verbose = config.verbose ?? false
-    this.approvalFunc = config.appprovalFunc ?? requestApproval
+    this.approvalFunc = config.approvalFunc ?? requestApproval
   }
 
   async generate(userPrompt: string): Promise<{ text: string }> {

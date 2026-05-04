@@ -12,6 +12,10 @@ const dangerousChars = /[;&`$]/
 
 type Quote = null | "'" | '"'
 
+type ExecCommandArgs =
+  | { command: string }
+  | { commandName: string; commandArgs: string[] }
+
 const parseCommand = (input: string): string[] => {
   const tokens: string[] = []
 
@@ -60,17 +64,32 @@ const parseCommand = (input: string): string[] => {
   return tokens
 }
 
-const execCommandExecute = (args: { command: string }): Promise<string> => {
-  // Check dangerous characters to prevent command injection
-  if (dangerousChars.test(args.command)) {
-    throw new Error(
-      "Command contains dangerous characters that are not allowed",
-    )
-  }
+const execCommandExecute = (args: ExecCommandArgs): Promise<string> => {
+  let commandName: string
+  let commandArgs: string[]
 
-  const parts = parseCommand(args.command)
-  const commandName = parts[0]
-  const commandArgs = parts.slice(1)
+  if ("command" in args) {
+    // Check dangerous characters to prevent command injection
+    if (dangerousChars.test(args.command)) {
+      throw new Error(
+        "Command contains dangerous characters that are not allowed",
+      )
+    }
+
+    const parts = parseCommand(args.command)
+    if (parts.length === 0) {
+      throw new Error("No command provided")
+    }
+    const first = parts[0]
+    if (!first) {
+      throw new Error("No command provided")
+    }
+    commandName = first
+    commandArgs = parts.slice(1)
+  } else {
+    commandName = args.commandName
+    commandArgs = args.commandArgs
+  }
 
   if (!commandName) {
     throw new Error("No command provided")
@@ -125,23 +144,38 @@ const execCommandExecute = (args: { command: string }): Promise<string> => {
     })
 
     child.on("close", (code) => {
-      let result = ""
-
-      if (stdout) {
-        result += stdout
-      }
-      if (stderr) {
-        result += (stdout ? "\n" : "") + `[stderr] ${stderr}`
-      }
-      if (outputTruncated) {
-        result += "\n...[output truncated]"
-      }
+      const stdoutText = stdout.trim()
+      const stderrText = stderr.trim()
 
       if (code !== 0) {
-        result += `\n[process exited with code ${code}]`
+        let errorMessage = stderrText || stdoutText || "Unknown error"
+        if (outputTruncated) {
+          errorMessage += "\n...[output truncated]"
+        }
+        reject(
+          new Error(
+            `Command failed (${code}): ${commandName} ${commandArgs.join(" ")}` +
+              (errorMessage ? `\n${errorMessage}` : ""),
+          ),
+        )
+        return
       }
 
-      resolve(result || "[no output]")
+      if (stdoutText) {
+        resolve(
+          outputTruncated ? `${stdoutText}\n...[output truncated]` : stdoutText,
+        )
+        return
+      }
+
+      if (stderrText) {
+        resolve(
+          outputTruncated ? `${stderrText}\n...[output truncated]` : stderrText,
+        )
+        return
+      }
+
+      resolve(outputTruncated ? "...[output truncated]" : "[no output]")
     })
 
     child.on("error", (err) => {
@@ -171,6 +205,6 @@ export const execCommand: Tool = {
     required: ["command"],
   },
   execute: async (args) => {
-    return await execCommandExecute(args as { command: string })
+    return await execCommandExecute(args as ExecCommandArgs)
   },
 }
