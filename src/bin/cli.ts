@@ -43,7 +43,7 @@ const main = async () => {
     model,
     instructions,
     tools: allTools,
-    maxSteps: 15,
+    maxSteps: 20,
     verbose: values.verbose,
     approvalFunc: yoloMode ? async () => true : undefined,
   })
