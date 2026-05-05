@@ -1,9 +1,15 @@
 /* -- Tool Types -- */
+export type ToolParameters = {
+  type: "object"
+  properties?: unknown | null
+  required?: string[] | null
+}
+
 export type Tool = {
   name: string
   description: string
   needsApproval: boolean
-  parameters: Record<string, unknown>
+  parameters: ToolParameters
   execute: (args: Record<string, unknown>) => Promise<string>
 }
 

@@ -39,10 +39,7 @@ export const createAnthropic = (config?: CreateAnthropicConfig): Provider => {
       const tools: ToolUnion[] = params.tools.map((tool) => ({
         name: tool.name,
         description: tool.description,
-        input_schema: {
-          type: "object",
-          properties: tool.parameters,
-        },
+        input_schema: tool.parameters,
       }))
 
       try {
@@ -118,10 +115,7 @@ export const createAnthropic = (config?: CreateAnthropicConfig): Provider => {
       const tools: ToolUnion[] = params.tools.map((tool) => ({
         name: tool.name,
         description: tool.description,
-        input_schema: {
-          type: "object",
-          properties: tool.parameters,
-        },
+        input_schema: tool.parameters,
       }))
 
       const stream = await client.messages.create(

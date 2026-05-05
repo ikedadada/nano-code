@@ -27,15 +27,15 @@ export const createGoogle = (config?: CreateGoogleConfig): Provider => {
         .map((message) => message.content)
         .join("\n")
 
-      const tools = [
+      const tools: ToolListUnion = [
         {
           functionDeclarations: params.tools.map((tool) => ({
             name: tool.name,
             description: tool.description,
-            parameters: tool.parameters,
+            parametersJsonSchema: tool.parameters,
           })),
         },
-      ] as ToolListUnion
+      ]
 
       try {
         const response = await client.models.generateContent({
@@ -111,15 +111,15 @@ export const createGoogle = (config?: CreateGoogleConfig): Provider => {
         .map((message) => message.content)
         .join("\n")
 
-      const tools = [
+      const tools: ToolListUnion = [
         {
           functionDeclarations: params.tools.map((tool) => ({
             name: tool.name,
             description: tool.description,
-            parameters: tool.parameters,
+            parametersJsonSchema: tool.parameters,
           })),
         },
-      ] as ToolListUnion
+      ]
 
       const stream = await client.models.generateContentStream({
         model: modelId,
