@@ -1,5 +1,11 @@
-import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "node:fs"
-import { join } from "node:path"
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs"
+import { dirname, join } from "node:path"
 import type { Tool } from "../types"
 import { execCommand } from "./execCommand"
 
@@ -44,7 +50,8 @@ function writeTempFile(content: string, prefix: string): string {
   if (!existsSync(WORKSPACE_ROOT)) {
     mkdirSync(WORKSPACE_ROOT, { recursive: true })
   }
-  const tempPath = join(WORKSPACE_ROOT, `.${prefix}-${Date.now()}.txt`)
+  const tempDir = mkdtempSync(join(WORKSPACE_ROOT, `.${prefix}-`))
+  const tempPath = join(tempDir, "content.txt")
   writeFileSync(tempPath, content, "utf-8")
   return tempPath
 }
@@ -137,7 +144,7 @@ export const commit: Tool = {
         return `Committed: ${parsedArgs.message}\n${result}`
       } finally {
         try {
-          unlinkSync(messageFile)
+          rmSync(dirname(messageFile), { recursive: true, force: true })
         } catch {
           /* ignore */
         }
