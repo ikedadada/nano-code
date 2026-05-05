@@ -1,5 +1,6 @@
 import * as path from "node:path"
 import { parseArgs } from "node:util"
+import { config } from "../config"
 import { Agent } from "../core/agent"
 import { loadInstructions } from "../core/prompts"
 import { createModelFromEnv } from "../core/providers/modelFactory"
@@ -11,9 +12,16 @@ const main = async () => {
     options: {
       yolo: { type: "boolean", default: false },
       verbose: { type: "boolean", default: false },
+      sandbox: { type: "boolean", default: false },
+      "allowed-domains": { type: "string" },
     },
     allowPositionals: true,
   })
+
+  config.sandbox = values.sandbox
+  if (values["allowed-domains"]) {
+    config.allowedDomains.push(...values["allowed-domains"].split(","))
+  }
 
   const isIssueDriven =
     process.env.ISSUE_BODY !== undefined || process.env.ISSUE_TEXT !== undefined

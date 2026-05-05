@@ -3,6 +3,7 @@ import { execCommand } from "./execCommand"
 import { commit, createBranch, pushBranch } from "./git"
 import { createIssueComment, createPullRequest } from "./github"
 import { readFile } from "./readFile"
+import { webFetch } from "./webFetch"
 import { writeFile } from "./writeFile"
 
 export const allTools = [
@@ -15,4 +16,5 @@ export const allTools = [
   pushBranch,
   createPullRequest,
   createIssueComment,
+  webFetch,
 ]

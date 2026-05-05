@@ -1,10 +1,18 @@
 import { spawn } from "node:child_process"
 import * as path from "node:path"
+import { config } from "../../config"
+import { Sandbox } from "../sandbox"
 import type { Tool } from "../types"
 
 const WORKSPACE_ROOT = path.resolve(process.cwd(), "./workspace")
 
-const ALLOWED_COMMANDS = ["bun", "ls", "git", "gh"]
+const SAFE_ENV = {
+  PATH: process.env.PATH || "/usr/local/bin:/usr/bin:/bin",
+  HOME: "/tmp",
+  LANG: process.env.LANG || "C.UTF-8",
+}
+
+const ALLOWED_COMMANDS = ["bun", "ls", "git", "gh", "curl"]
 
 const MAX_OUTPUT_LENGTH = 2024
 
@@ -64,7 +72,7 @@ const parseCommand = (input: string): string[] => {
   return tokens
 }
 
-const execCommandExecute = (args: ExecCommandArgs): Promise<string> => {
+const execCommandExecute = async (args: ExecCommandArgs): Promise<string> => {
   let commandName: string
   let commandArgs: string[]
 
@@ -110,6 +118,18 @@ const execCommandExecute = (args: ExecCommandArgs): Promise<string> => {
         )
       }
     }
+  }
+  if (process.platform === "linux" && config.sandbox) {
+    const sandbox = new Sandbox()
+    const result = await sandbox.run(commandName, commandArgs, {
+      allowNetwork: false,
+      env: SAFE_ENV,
+    })
+
+    if (result.exitCode !== 0) {
+      throw new Error(`Command failed: ${result.stderr}`)
+    }
+    return result.stdout
   }
 
   return new Promise((resolve, reject) => {
@@ -188,7 +208,7 @@ export const execCommand: Tool = {
   name: "execCommand",
   description: [
     "Executes a shell command and returns its output as a string.",
-    "Only a limited set of safe commands are allowed (bun, ls, git, gh).",
+    "Only a limited set of safe commands are allowed (bun, ls, git, gh, curl).",
     "Commands must not contain dangerous characters (e.g., ; & ` $) to prevent command injection.",
     "Arguments that resolve to paths must be within the workspace.",
     "Output is limited to 2024 characters to prevent excessive token usage.",
