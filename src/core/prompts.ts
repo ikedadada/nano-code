@@ -12,7 +12,7 @@ export const loadInstructions = (
 
   instructions = `${base}`
 
-  const agentMdPath = path.join(workspaceRoot, "agent.md")
+  const agentMdPath = path.join(workspaceRoot, "AGENTS.md")
   if (fs.existsSync(agentMdPath)) {
     const agentsMd = fs.readFileSync(agentMdPath, "utf-8")
     instructions = `${instructions}\n\n# Project-Specific Instructions\n\n${agentsMd}`
