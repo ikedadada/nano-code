@@ -3,6 +3,7 @@ import type {
   ChatCompletion,
   ChatCompletionMessageParam,
 } from "openai/resources"
+import { parseJsonObject } from "../../helper"
 import type {
   GenerateParams,
   GenerateTextResult,
@@ -74,7 +75,7 @@ export const createOpenAI = (config?: CreateOpenAIConfig): Provider => {
             .map((call) => ({
               toolCallId: call.id,
               name: call.function.name,
-              args: JSON.parse(call.function.arguments),
+              args: parseJsonObject(call.function.arguments),
             })) || []
 
         return {
@@ -101,7 +102,9 @@ export const createOpenAI = (config?: CreateOpenAIConfig): Provider => {
             500,
             "openai",
             undefined,
-            "An unknown error occurred",
+            error instanceof Error
+              ? error.message
+              : "An unknown error occurred",
             error,
           )
         }
@@ -184,7 +187,7 @@ export const createOpenAI = (config?: CreateOpenAIConfig): Provider => {
       const toolCalls = Object.values(toolCallBuffer).map((tc) => ({
         toolCallId: tc.id,
         name: tc.name,
-        args: JSON.parse(tc.argsText),
+        args: parseJsonObject(tc.argsText),
       }))
 
       yield {

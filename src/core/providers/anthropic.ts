@@ -5,6 +5,7 @@ import type {
   StopReason,
   ToolUnion,
 } from "@anthropic-ai/sdk/resources"
+import { parseJsonObject } from "../../helper"
 import type {
   GenerateParams,
   GenerateTextResult,
@@ -171,8 +172,8 @@ export const createAnthropic = (config?: CreateAnthropicConfig): Provider => {
                 partialJsonBuffer[id] += event.delta.partial_json
                 try {
                   if (toolCallBuffer[id]) {
-                    toolCallBuffer[id].args = JSON.parse(
-                      partialJsonBuffer[id] || "",
+                    toolCallBuffer[id].args = parseJsonObject(
+                      partialJsonBuffer[id] ?? "",
                     )
                   }
                 } catch {
