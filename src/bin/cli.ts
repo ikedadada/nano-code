@@ -13,6 +13,7 @@ const main = async () => {
       yolo: { type: "boolean", default: false },
       verbose: { type: "boolean", default: false },
       sandbox: { type: "boolean", default: false },
+      streaming: { type: "boolean", default: false },
       "allowed-domains": { type: "string" },
     },
     allowPositionals: true,
@@ -54,6 +55,7 @@ const main = async () => {
     tools: allTools,
     maxSteps: 20,
     verbose: values.verbose,
+    useStreaming: values.streaming,
     approvalFunc: yoloMode ? async () => true : undefined,
   })
 

@@ -6,6 +6,7 @@ import type {
   LanguageModel,
   Message,
   Provider,
+  StreamChunk,
   ToolCall,
 } from "../types"
 import { LLMApiError } from "../types"
@@ -101,6 +102,93 @@ export const createOpenAI = (config?: CreateOpenAIConfig): Provider => {
             error,
           )
         }
+      }
+    },
+
+    async *doStream(params: GenerateParams): AsyncIterable<StreamChunk> {
+      const tools = params.tools.map((tool) => ({
+        type: "function" as const,
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.parameters,
+        },
+      }))
+
+      const stream = await client.chat.completions.create(
+        {
+          model: modelId,
+          messages: convertMessages(params.messages),
+          temperature: params.temperature,
+          max_tokens: params.maxTokens,
+          stream: true,
+          stream_options: { include_usage: true },
+          ...(tools.length > 0 && { tools }),
+        },
+        {
+          signal: params.signal,
+        },
+      )
+
+      const toolCallBuffer: Record<
+        string,
+        { id: string; name: string; argsText: string }
+      > = {}
+      let finishReason: StreamChunk["finishReason"]
+      let usage: StreamChunk["usage"] = {}
+
+      for await (const chunk of stream) {
+        const choice = chunk.choices?.[0]
+
+        if (choice?.delta?.content) {
+          yield {
+            kind: "delta",
+            text: choice.delta.content,
+            toolCalls: [],
+            usage: {},
+          }
+        }
+
+        if (choice?.delta?.tool_calls) {
+          for (const tc of choice.delta.tool_calls) {
+            const key = tc.id || String(tc.index)
+            const existing = toolCallBuffer[key] || {
+              id: "",
+              name: "",
+              argsText: "",
+            }
+            if (tc.id) existing.id = tc.id
+            if (tc.function?.name) existing.name = tc.function.name
+            if (tc.function?.arguments)
+              existing.argsText += tc.function.arguments
+            toolCallBuffer[key] = existing
+          }
+        }
+
+        if (choice?.finish_reason) {
+          finishReason = mapFinishReason(choice.finish_reason)
+        }
+
+        if (chunk.usage) {
+          usage = {
+            promptTokens: chunk.usage.prompt_tokens,
+            completionTokens: chunk.usage.completion_tokens,
+            totalTokens: chunk.usage.total_tokens,
+          }
+        }
+      }
+
+      const toolCalls = Object.values(toolCallBuffer).map((tc) => ({
+        toolCallId: tc.id,
+        name: tc.name,
+        args: JSON.parse(tc.argsText),
+      }))
+
+      yield {
+        kind: "done",
+        finishReason,
+        usage,
+        toolCalls,
       }
     },
   })

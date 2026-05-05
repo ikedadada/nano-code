@@ -71,8 +71,18 @@ export type GenerateParams = {
   signal?: AbortSignal // for timeout or cancellation
 }
 
+export interface StreamChunk {
+  kind: "delta" | "event" | "done"
+  text?: string
+  finishReason?: "stop" | "length" | "content_filter" | "tool_call" | "error"
+  toolCalls: ToolCall[]
+  usage: Usage
+  error?: unknown
+}
+
 export interface LanguageModel {
   doGenerate(params: GenerateParams): Promise<GenerateTextResult>
+  doStream(params: GenerateParams): AsyncIterable<StreamChunk>
 }
 
 export type Provider = (modelId: string) => LanguageModel

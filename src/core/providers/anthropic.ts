@@ -10,6 +10,7 @@ import type {
   LanguageModel,
   Message,
   Provider,
+  StreamChunk,
   ToolCall,
 } from "../types"
 import { LLMApiError } from "../types"
@@ -35,15 +36,14 @@ export const createAnthropic = (config?: CreateAnthropicConfig): Provider => {
           text: message.content,
         }))
 
-      const tools: ToolUnion[] =
-        params.tools.map((tool) => ({
-          name: tool.name,
-          description: tool.description,
-          input_schema: {
-            type: "object",
-            properties: tool.parameters,
-          },
-        })) || []
+      const tools: ToolUnion[] = params.tools.map((tool) => ({
+        name: tool.name,
+        description: tool.description,
+        input_schema: {
+          type: "object",
+          properties: tool.parameters,
+        },
+      }))
 
       try {
         const completion = await client.messages.create(
@@ -102,6 +102,116 @@ export const createAnthropic = (config?: CreateAnthropicConfig): Provider => {
             "An unknown error occurred",
             error,
           )
+        }
+      }
+    },
+
+    async *doStream(params: GenerateParams): AsyncIterable<StreamChunk> {
+      /* Anthropic-specific logic */
+      const system = params.messages
+        .filter((message) => message.role === "system")
+        .map((message) => ({
+          type: "text" as const,
+          text: message.content,
+        }))
+
+      const tools: ToolUnion[] = params.tools.map((tool) => ({
+        name: tool.name,
+        description: tool.description,
+        input_schema: {
+          type: "object",
+          properties: tool.parameters,
+        },
+      }))
+
+      const stream = await client.messages.create(
+        {
+          model: modelId,
+          system,
+          messages: convertMessages(params.messages),
+          temperature: params.temperature,
+          max_tokens: params.maxTokens || 4096,
+          stream: true,
+          ...(tools.length > 0 && { tools }),
+        },
+        {
+          signal: params.signal,
+        },
+      )
+
+      const toolCallBuffer: Record<string, ToolCall> = {}
+      const partialJsonBuffer: Record<string, string> = {}
+      const indexToId: Record<number, string> = {}
+      let finishReason: StreamChunk["finishReason"]
+      let usage: StreamChunk["usage"] = {}
+
+      for await (const event of stream) {
+        switch (event.type) {
+          case "content_block_start":
+            if (event.content_block.type === "tool_use") {
+              const id = event.content_block.id
+              indexToId[event.index] = id
+              toolCallBuffer[id] = {
+                toolCallId: id,
+                name: event.content_block.name,
+                args: {},
+              }
+              partialJsonBuffer[id] = ""
+            }
+            break
+
+          case "content_block_delta":
+            if (event.delta?.type === "text_delta") {
+              yield {
+                kind: "delta",
+                text: event.delta.text,
+                toolCalls: [],
+                usage: {},
+              }
+            }
+
+            if (event.delta?.type === "input_json_delta") {
+              const id = indexToId[event.index]
+              if (id) {
+                partialJsonBuffer[id] += event.delta.partial_json
+                try {
+                  if (toolCallBuffer[id]) {
+                    toolCallBuffer[id].args = JSON.parse(
+                      partialJsonBuffer[id] || "",
+                    )
+                  }
+                } catch {
+                  /**Failed to parse partial JSON, wait for nextchunk */
+                }
+              }
+            }
+            break
+
+          case "message_delta":
+            if (event.delta?.stop_reason) {
+              finishReason = mapFinishReason(event.delta?.stop_reason)
+            }
+            if (event.usage) {
+              usage = {
+                promptTokens: event.usage.input_tokens ?? 0,
+                completionTokens: event.usage.output_tokens,
+                totalTokens:
+                  (event.usage.input_tokens ?? 0) + event.usage.output_tokens,
+              }
+            }
+            break
+
+          case "message_stop": {
+            const toolCalls = Object.values(toolCallBuffer)
+
+            yield {
+              kind: "done",
+              toolCalls,
+              finishReason,
+              usage,
+            }
+            break
+          }
         }
       }
     },

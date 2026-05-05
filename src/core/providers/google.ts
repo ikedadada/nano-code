@@ -6,6 +6,7 @@ import type {
   LanguageModel,
   Message,
   Provider,
+  StreamChunk,
   ToolCall,
 } from "../types"
 import { LLMApiError } from "../types"
@@ -101,6 +102,81 @@ export const createGoogle = (config?: CreateGoogleConfig): Provider => {
             error,
           )
         }
+      }
+    },
+
+    async *doStream(params: GenerateParams): AsyncIterable<StreamChunk> {
+      const systemInstruction = params.messages
+        .filter((message) => message.role === "system")
+        .map((message) => message.content)
+        .join("\n")
+
+      const tools = [
+        {
+          functionDeclarations: params.tools.map((tool) => ({
+            name: tool.name,
+            description: tool.description,
+            parameters: tool.parameters,
+          })),
+        },
+      ] as ToolListUnion
+
+      const stream = await client.models.generateContentStream({
+        model: modelId,
+        contents: convertMessages(params.messages),
+        config: {
+          systemInstruction,
+          temperature: params.temperature,
+          maxOutputTokens: params.maxTokens,
+          ...(tools.length > 0 && { tools }),
+        },
+      })
+
+      const toolCallBuffer: Record<string, ToolCall> = {}
+      let finishReason: StreamChunk["finishReason"]
+      let usage: StreamChunk["usage"] = {}
+
+      for await (const chunk of stream) {
+        const candidate = chunk.candidates?.[0]
+
+        const text = candidate?.content?.parts?.[0]?.text
+        if (text) {
+          yield { kind: "delta", text, toolCalls: [], usage: {} }
+        }
+
+        for (const part of candidate?.content?.parts || []) {
+          if (part.functionCall?.name) {
+            const id = part.functionCall.name
+            toolCallBuffer[id] = {
+              toolCallId: id,
+              name: part.functionCall.name,
+              args: part.functionCall.args || {},
+            }
+          }
+        }
+
+        if (candidate?.finishReason) {
+          finishReason = mapFinishReason(
+            candidate.finishReason,
+            !!Object.keys(toolCallBuffer).length,
+          )
+        }
+
+        if (chunk.usageMetadata) {
+          usage = {
+            promptTokens: chunk.usageMetadata?.promptTokenCount,
+            completionTokens: chunk.usageMetadata?.candidatesTokenCount,
+            totalTokens: chunk.usageMetadata?.totalTokenCount,
+          }
+        }
+      }
+
+      const toolCalls = Object.values(toolCallBuffer)
+      yield {
+        kind: "done",
+        finishReason,
+        toolCalls,
+        usage,
       }
     },
   })

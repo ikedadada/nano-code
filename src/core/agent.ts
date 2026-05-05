@@ -1,5 +1,5 @@
 import { requestApproval } from "./approval"
-import { generateText } from "./generateText"
+import { collectStreamResult, generateText } from "./generateText"
 import type { LanguageModel, Message, Tool } from "./types"
 
 interface AgentConfig {
@@ -9,6 +9,7 @@ interface AgentConfig {
   tools: Tool[]
   maxSteps?: number
   verbose?: boolean
+  useStreaming?: boolean
   approvalFunc?: (
     toolName: string,
     args: Record<string, unknown>,
@@ -33,6 +34,8 @@ export class Agent {
   private tools: Tool[]
   private maxSteps: number
   private verbose: boolean
+  private useStreaming: boolean
+
   private approvalFunc: (
     toolName: string,
     args: Record<string, unknown>,
@@ -44,6 +47,7 @@ export class Agent {
     this.tools = config.tools
     this.maxSteps = config.maxSteps ?? 5
     this.verbose = config.verbose ?? false
+    this.useStreaming = config.useStreaming ?? false
     this.approvalFunc = config.approvalFunc ?? requestApproval
   }
 
@@ -62,11 +66,25 @@ export class Agent {
 
       messages = this.manageContext(messages)
 
-      const response = await generateText({
-        model: this.model,
-        messages,
-        tools: this.tools,
-      })
+      const response = await (async () => {
+        if (this.useStreaming) {
+          return await collectStreamResult({
+            model: this.model,
+            messages: messages,
+            tools: this.tools,
+            onChunk: (chunk) => {
+              if (chunk.kind === "delta" && chunk.text) {
+                process.stdout.write(chunk.text)
+              }
+            },
+          })
+        }
+        return generateText({
+          model: this.model,
+          messages,
+          tools: this.tools,
+        })
+      })()
 
       if (response.text) {
         finalText = response.text
