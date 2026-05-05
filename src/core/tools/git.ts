@@ -51,8 +51,7 @@ function writeTempFile(content: string, prefix: string): string {
 
 export const createBranch: Tool = {
   name: "createBranch",
-  description:
-    "Create a new Git branch. If the branch already exists, force reset it to the current HEAD.",
+  description: "Create a new Git branch. Fails if the branch already exists.",
   needsApproval: true,
   parameters: {
     type: "object",
