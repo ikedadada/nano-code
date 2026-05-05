@@ -1,4 +1,9 @@
-import type { ContentListUnion, Part, ToolListUnion } from "@google/genai"
+import type {
+  ContentListUnion,
+  FinishReason,
+  Part,
+  ToolListUnion,
+} from "@google/genai"
 import { ApiError, GoogleGenAI } from "@google/genai"
 import type {
   GenerateParams,
@@ -241,11 +246,11 @@ const convertMessages = (messages: Message[]): ContentListUnion => {
 }
 
 const mapFinishReason = (
-  reason: string | undefined,
+  reason: FinishReason | undefined,
   hasFunctionCall: boolean,
 ): GenerateTextResult["finishReason"] => {
   if (hasFunctionCall) return "tool_call"
-  switch (reason?.toUpperCase()) {
+  switch (reason) {
     case "STOP":
       return "stop"
     case "MAX_TOKENS":

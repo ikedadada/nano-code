@@ -1,5 +1,8 @@
 import OpenAI, { APIError } from "openai"
-import type { ChatCompletionMessageParam } from "openai/resources"
+import type {
+  ChatCompletion,
+  ChatCompletionMessageParam,
+} from "openai/resources"
 import type {
   GenerateParams,
   GenerateTextResult,
@@ -233,7 +236,7 @@ const convertMessages = (messages: Message[]): ChatCompletionMessageParam[] => {
 }
 
 const mapFinishReason = (
-  reason: string | null,
+  reason: ChatCompletion.Choice["finish_reason"] | null,
 ): GenerateTextResult["finishReason"] => {
   switch (reason) {
     case "stop":
@@ -242,7 +245,8 @@ const mapFinishReason = (
       return "length"
     case "content_filter":
       return "content_filter"
-    case "tool_call":
+    case "tool_calls":
+    case "function_call":
       return "tool_call"
     default:
       return "stop"

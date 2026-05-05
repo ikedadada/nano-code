@@ -2,6 +2,7 @@ import Anthropic, { APIError } from "@anthropic-ai/sdk"
 import type {
   ContentBlockParam,
   MessageParam,
+  StopReason,
   ToolUnion,
 } from "@anthropic-ai/sdk/resources"
 import type {
@@ -273,7 +274,7 @@ const toRecord = (value: unknown): Record<string, unknown> => {
 }
 
 const mapFinishReason = (
-  reason: string | null,
+  reason: StopReason | null,
 ): GenerateTextResult["finishReason"] => {
   switch (reason) {
     case "end_turn":
