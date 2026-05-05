@@ -27,15 +27,18 @@ export const createGoogle = (config?: CreateGoogleConfig): Provider => {
         .map((message) => message.content)
         .join("\n")
 
-      const tools: ToolListUnion = [
-        {
-          functionDeclarations: params.tools.map((tool) => ({
-            name: tool.name,
-            description: tool.description,
-            parametersJsonSchema: tool.parameters,
-          })),
-        },
-      ]
+      const tools: ToolListUnion =
+        params.tools.length > 0
+          ? [
+              {
+                functionDeclarations: params.tools.map((tool) => ({
+                  name: tool.name,
+                  description: tool.description,
+                  parametersJsonSchema: tool.parameters,
+                })),
+              },
+            ]
+          : []
 
       try {
         const response = await client.models.generateContent({
@@ -111,15 +114,18 @@ export const createGoogle = (config?: CreateGoogleConfig): Provider => {
         .map((message) => message.content)
         .join("\n")
 
-      const tools: ToolListUnion = [
-        {
-          functionDeclarations: params.tools.map((tool) => ({
-            name: tool.name,
-            description: tool.description,
-            parametersJsonSchema: tool.parameters,
-          })),
-        },
-      ]
+      const tools: ToolListUnion =
+        params.tools.length > 0
+          ? [
+              {
+                functionDeclarations: params.tools.map((tool) => ({
+                  name: tool.name,
+                  description: tool.description,
+                  parametersJsonSchema: tool.parameters,
+                })),
+              },
+            ]
+          : []
 
       const stream = await client.models.generateContentStream({
         model: modelId,
