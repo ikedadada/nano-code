@@ -126,6 +126,7 @@ const execCommandExecute = async (args: ExecCommandArgs): Promise<string> => {
   if (process.platform === "linux" && config.sandbox) {
     const sandbox = new Sandbox()
     const result = await sandbox.run(commandName, commandArgs, {
+      cwd: WORKSPACE_ROOT,
       allowNetwork: false,
       env: SAFE_ENV,
     })
