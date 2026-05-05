@@ -23,6 +23,16 @@ const writeFileExecute = async (args: {
   const dir = path.dirname(absolutePath)
   await fs.mkdir(dir, { recursive: true })
 
+  let realPath: string
+  try {
+    realPath = await fs.realpath(absolutePath)
+  } catch {
+    realPath = path.join(await fs.realpath(dir), path.basename(absolutePath))
+  }
+  if (!realPath.startsWith(allowPrefix) && realPath !== WORKSPACE_ROOT) {
+    throw new Error("Access denied: Path must be within the workspace")
+  }
+
   await fs.writeFile(absolutePath, args.content, "utf-8")
 
   return `File written successfully to ${args.path}`

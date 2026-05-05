@@ -20,6 +20,11 @@ const editFileExecute = async (args: {
     throw new Error("Access denied: Path must be within the workspace")
   }
 
+  const realPath = await fs.realpath(absolutePath)
+  if (!realPath.startsWith(allowPrefix) && realPath !== WORKSPACE_ROOT) {
+    throw new Error("Access denied: Path must be within the workspace")
+  }
+
   const content = await fs.readFile(absolutePath, "utf-8")
 
   const matches = content.split(args.oldText).length - 1
