@@ -112,7 +112,11 @@ const execCommandExecute = async (args: ExecCommandArgs): Promise<string> => {
   for (const arg of commandArgs) {
     if (arg.includes("/") || arg.includes("\\")) {
       const resolvedPath = path.resolve(WORKSPACE_ROOT, arg)
-      if (!resolvedPath.startsWith(WORKSPACE_ROOT)) {
+      const allowPrefix = WORKSPACE_ROOT + path.sep
+      if (
+        !resolvedPath.startsWith(allowPrefix) &&
+        resolvedPath !== WORKSPACE_ROOT
+      ) {
         throw new Error(
           `Argument "${arg}" is not allowed because it resolves outside the workspace`,
         )
