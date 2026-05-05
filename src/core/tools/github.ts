@@ -95,7 +95,13 @@ export const createPullRequest: Tool = {
     const bodyFile = writeTempFile(parsedArgs.body, "pr-body")
 
     try {
-      const existingPRs = JSON.parse(listResult || "[]")
+      let existingPRs: unknown = []
+      try {
+        existingPRs = JSON.parse(listResult || "[]")
+      } catch {
+        // If JSON parsing fails, attempt to create a new PR.
+      }
+
       if (Array.isArray(existingPRs) && existingPRs.length > 0) {
         const prNumber = String(existingPRs[0].number)
         await execCommand.execute({
@@ -104,11 +110,7 @@ export const createPullRequest: Tool = {
         })
         return `Updated existing PR #${prNumber}`
       }
-    } catch {
-      // If JSON parsing fails, attempt to create a new PR
-    }
 
-    try {
       const result = await execCommand.execute({
         commandName: "gh",
         commandArgs: [
