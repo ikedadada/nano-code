@@ -19,13 +19,13 @@ const readFileExecute = async (args: { path: string }): Promise<string> => {
     throw new Error("Access denied: Path must be within the workspace")
   }
 
-  // Ensure the path is within the workspace (after resolving symlinks)
-  const realPath = await fs.realpath(absolutePath)
-  if (!realPath.startsWith(allowPrefix) && realPath !== WORKSPACE_ROOT) {
-    throw new Error("Access denied: Path must be within the workspace")
-  }
-
   try {
+    // Ensure the path is within the workspace (after resolving symlinks)
+    const realPath = await fs.realpath(absolutePath)
+    if (!realPath.startsWith(allowPrefix) && realPath !== WORKSPACE_ROOT) {
+      throw new Error("Access denied: Path must be within the workspace")
+    }
+
     const stat = await fs.stat(absolutePath)
 
     if (!stat.isFile()) {

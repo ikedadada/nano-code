@@ -1,5 +1,6 @@
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
+import { isErrnoException } from "../../helper"
 import type { Tool } from "../types"
 
 const WORKSPACE_ROOT = path.resolve(process.cwd(), "./workspace")
@@ -26,7 +27,18 @@ const writeFileExecute = async (args: {
   let realPath: string
   try {
     realPath = await fs.realpath(absolutePath)
-  } catch {
+  } catch (err) {
+    if (!isErrnoException(err) || err.code !== "ENOENT") {
+      throw err
+    }
+    try {
+      await fs.lstat(absolutePath)
+      throw new Error("Access denied: Path must be within the workspace")
+    } catch (lstatErr) {
+      if (!isErrnoException(lstatErr) || lstatErr.code !== "ENOENT") {
+        throw lstatErr
+      }
+    }
     realPath = path.join(await fs.realpath(dir), path.basename(absolutePath))
   }
   if (!realPath.startsWith(allowPrefix) && realPath !== WORKSPACE_ROOT) {

@@ -1,5 +1,6 @@
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
+import { isErrnoException } from "../../helper"
 import type { Tool } from "../types"
 
 const WORKSPACE_ROOT = path.resolve(process.cwd(), "./workspace")
@@ -20,9 +21,16 @@ const editFileExecute = async (args: {
     throw new Error("Access denied: Path must be within the workspace")
   }
 
-  const realPath = await fs.realpath(absolutePath)
-  if (!realPath.startsWith(allowPrefix) && realPath !== WORKSPACE_ROOT) {
-    throw new Error("Access denied: Path must be within the workspace")
+  try {
+    const realPath = await fs.realpath(absolutePath)
+    if (!realPath.startsWith(allowPrefix) && realPath !== WORKSPACE_ROOT) {
+      throw new Error("Access denied: Path must be within the workspace")
+    }
+  } catch (err) {
+    if (isErrnoException(err) && err.code === "ENOENT") {
+      throw new Error("File not found")
+    }
+    throw err
   }
 
   const content = await fs.readFile(absolutePath, "utf-8")
