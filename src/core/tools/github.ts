@@ -6,6 +6,7 @@ import {
   writeFileSync,
 } from "node:fs"
 import { dirname, join } from "node:path"
+import { z } from "zod"
 import type { Tool } from "../types"
 import { execCommand } from "./execCommand"
 
@@ -73,12 +74,13 @@ export const createPullRequest: Tool = {
     required: ["title", "body", "head", "base"],
   },
   execute: async (args) => {
-    const parsedArgs = args as {
-      title: string
-      body: string
-      head: string
-      base: string
-    }
+    const argsSchema = z.object({
+      title: z.string(),
+      body: z.string(),
+      head: z.string(),
+      base: z.string(),
+    })
+    const parsedArgs = argsSchema.parse(args)
     validateTitle(parsedArgs.title)
     validateBranchName(parsedArgs.head)
     validateBranchName(parsedArgs.base)
@@ -163,14 +165,11 @@ export const createIssueComment: Tool = {
     required: ["issueNumber", "body"],
   },
   execute: async (args) => {
-    const parsedArgs = args as { issueNumber: number; body: string }
-
-    if (
-      !Number.isInteger(parsedArgs.issueNumber) ||
-      parsedArgs.issueNumber <= 0
-    ) {
-      throw new Error("issueNumber must be a positive integer")
-    }
+    const argsSchema = z.object({
+      issueNumber: z.number().int().positive(),
+      body: z.string(),
+    })
+    const parsedArgs = argsSchema.parse(args)
 
     const bodyFile = writeTempFile(parsedArgs.body, "comment-body")
     try {

@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process"
 import * as path from "node:path"
+import { z } from "zod"
 import { config } from "../../config"
 import { Sandbox } from "../sandbox"
 import type { Tool } from "../types"
@@ -230,6 +231,15 @@ export const execCommand: Tool = {
     required: ["command"],
   },
   execute: async (args) => {
-    return await execCommandExecute(args as ExecCommandArgs)
+    const argsSchema = z.union([
+      z.object({
+        command: z.string(),
+      }),
+      z.object({
+        commandName: z.string(),
+        commandArgs: z.array(z.string()),
+      }),
+    ])
+    return await execCommandExecute(argsSchema.parse(args))
   },
 }

@@ -1,5 +1,6 @@
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
+import { z } from "zod"
 import { isErrnoException } from "../../helper"
 import type { Tool } from "../types"
 
@@ -67,6 +68,9 @@ export const readFile: Tool = {
     required: ["path"],
   },
   execute: async (args) => {
-    return await readFileExecute(args as { path: string })
+    const argsSchema = z.object({
+      path: z.string(),
+    })
+    return await readFileExecute(argsSchema.parse(args))
   },
 }

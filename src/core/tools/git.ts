@@ -6,6 +6,7 @@ import {
   writeFileSync,
 } from "node:fs"
 import { dirname, join } from "node:path"
+import { z } from "zod"
 import type { Tool } from "../types"
 import { execCommand } from "./execCommand"
 
@@ -71,7 +72,10 @@ export const createBranch: Tool = {
     required: ["branchName"],
   },
   execute: async (args) => {
-    const parsedArgs = args as { branchName: string }
+    const argsSchema = z.object({
+      branchName: z.string(),
+    })
+    const parsedArgs = argsSchema.parse(args)
 
     const branchName = parsedArgs.branchName
     validateBranchName(branchName)
@@ -111,7 +115,11 @@ export const commit: Tool = {
     required: ["message", "files"],
   },
   execute: async (args) => {
-    const parsedArgs = args as { message: string; files: string[] }
+    const argsSchema = z.object({
+      message: z.string(),
+      files: z.array(z.string()),
+    })
+    const parsedArgs = argsSchema.parse(args)
 
     if (!parsedArgs.message || /[\0]/.test(parsedArgs.message)) {
       throw new Error("Invalid commit message")
@@ -171,7 +179,10 @@ export const pushBranch: Tool = {
     required: ["branchName"],
   },
   execute: async (args) => {
-    const parseArgs = args as { branchName: string }
+    const argsSchema = z.object({
+      branchName: z.string(),
+    })
+    const parseArgs = argsSchema.parse(args)
     validateBranchName(parseArgs.branchName)
     try {
       const result = await execCommand.execute({

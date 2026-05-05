@@ -1,3 +1,4 @@
+import { z } from "zod"
 import { config } from "../../config"
 import type { Tool } from "../types"
 
@@ -44,6 +45,9 @@ export const webFetch: Tool = {
     required: ["url"],
   },
   execute: async (args) => {
-    return await webFetchExecute(args as { url: string })
+    const argsSchema = z.object({
+      url: z.string(),
+    })
+    return await webFetchExecute(argsSchema.parse(args))
   },
 }

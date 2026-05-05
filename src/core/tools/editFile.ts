@@ -1,5 +1,6 @@
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
+import { z } from "zod"
 import { isErrnoException } from "../../helper"
 import type { Tool } from "../types"
 
@@ -79,8 +80,11 @@ export const editFile: Tool = {
     required: ["path", "oldText", "newText"],
   },
   execute: async (args) => {
-    return await editFileExecute(
-      args as { path: string; oldText: string; newText: string },
-    )
+    const argsSchema = z.object({
+      path: z.string(),
+      oldText: z.string(),
+      newText: z.string(),
+    })
+    return await editFileExecute(argsSchema.parse(args))
   },
 }
