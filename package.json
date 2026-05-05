@@ -1,6 +1,6 @@
 {
   "name": "nano-code",
-  "module": "index.ts",
+  "module": "src/bin/cli.ts",
   "type": "module",
   "private": true,
   "scripts": {
