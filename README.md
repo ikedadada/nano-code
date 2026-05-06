@@ -41,3 +41,30 @@ Options:
 - `-S, --streaming`: stream model output.
 - `-d, --allowed-domains <domains>`: comma-separated domains allowed for web
   fetch.
+
+## A2A Server
+
+```sh
+bun run a2a
+```
+
+The Hono-based A2A server exposes:
+
+- `GET /.well-known/agent-card.json`: A2A Agent Card discovery.
+- `POST /a2a`: JSON-RPC 2.0 endpoint supporting `message/send`.
+- `GET /docs`: Swagger UI for the A2A OpenAPI specification.
+
+Environment variables:
+
+- `PORT`: HTTP port, default `3000`.
+- `HOST`: host name used to build the default Agent Card URL, default
+  `localhost`.
+- `A2A_AGENT_URL`: explicit Agent Card service URL, default
+  `http://{HOST}:{PORT}/a2a`.
+- `A2A_AUTH_TOKEN`: optional Bearer token required by `POST /a2a`. When set,
+  the Agent Card declares `bearerAuth` in `securitySchemes` and `security`.
+- `A2A_SANDBOX`: set to `true` to run tool commands through the sandbox.
+- `A2A_ALLOWED_DOMAINS`: comma-separated domains allowed for web fetch.
+
+A2A requests run non-interactively after authentication, so tool approval is
+automatically granted for authenticated requests.
