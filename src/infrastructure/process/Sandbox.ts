@@ -1,4 +1,19 @@
+import type { SpawnOptionsWithoutStdio } from "node:child_process"
 import { spawn } from "node:child_process"
+import type { Readable } from "node:stream"
+
+type SpawnedProcess = {
+  stdout: Readable
+  stderr: Readable
+  on(event: "close", listener: (code: number | null) => void): unknown
+  on(event: "error", listener: (err: Error) => void): unknown
+}
+
+type SpawnProcess = (
+  command: string,
+  args: string[],
+  options: SpawnOptionsWithoutStdio,
+) => SpawnedProcess
 
 export interface SandboxOptions {
   cwd?: string
@@ -13,6 +28,8 @@ export interface SandboxResult {
 }
 
 export class Sandbox {
+  constructor(private spawnProcess: SpawnProcess = spawn) {}
+
   async run(
     command: string,
     args: string[],
@@ -58,7 +75,7 @@ export class Sandbox {
     bwrapArgs.push("--", command, ...args)
 
     return new Promise((resolve) => {
-      const child = spawn("bwrap", bwrapArgs, {
+      const child = this.spawnProcess("bwrap", bwrapArgs, {
         stdio: "pipe",
       })
 
