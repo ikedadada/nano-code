@@ -8,7 +8,6 @@ import { allTools } from "@/infrastructure/tools"
 export type RunAgentRequest = {
   prompt: string
   issueDriven: boolean
-  verbose: boolean
   streaming: boolean
   yolo: boolean
   sandbox: boolean
@@ -38,7 +37,6 @@ export const runAgent = async (
     instructions,
     tools: allTools,
     maxSteps: 20,
-    verbose: request.verbose,
     useStreaming: request.streaming,
     approvalFunc: request.yolo ? async () => true : requestApproval,
   })

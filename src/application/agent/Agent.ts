@@ -4,6 +4,8 @@ import {
 } from "@/application/generation/generateText"
 import type { ApprovalPolicy } from "@/application/ports/ApprovalPolicy"
 import type { LanguageModel, Message, Tool } from "@/domain/types"
+import { logger } from "@/infrastructure/logger/logger"
+import { outputStream } from "@/infrastructure/logger/outputStream"
 
 interface AgentConfig {
   name: string
@@ -11,7 +13,6 @@ interface AgentConfig {
   model: LanguageModel
   tools: Tool[]
   maxSteps?: number
-  verbose?: boolean
   useStreaming?: boolean
   approvalFunc: ApprovalPolicy
 }
@@ -33,7 +34,6 @@ export class Agent {
   private model: LanguageModel
   private tools: Tool[]
   private maxSteps: number
-  private verbose: boolean
   private useStreaming: boolean
 
   private approvalFunc: ApprovalPolicy
@@ -43,7 +43,6 @@ export class Agent {
     this.model = config.model
     this.tools = config.tools
     this.maxSteps = config.maxSteps ?? 5
-    this.verbose = config.verbose ?? false
     this.useStreaming = config.useStreaming ?? false
     this.approvalFunc = config.approvalFunc
   }
@@ -71,7 +70,7 @@ export class Agent {
             tools: this.tools,
             onChunk: (chunk) => {
               if (chunk.kind === "delta" && chunk.text) {
-                process.stdout.write(chunk.text)
+                outputStream.write(chunk.text)
               }
             },
           })
@@ -85,12 +84,7 @@ export class Agent {
 
       if (response.text) {
         finalText = response.text
-        if (this.verbose) {
-          console.log(
-            `Step ${currentStep} - Assistant Response:`,
-            response.text,
-          )
-        }
+        logger.debug(`Step ${currentStep} - Assistant Response:`, response.text)
       }
 
       if (response.toolCalls.length > 0) {
@@ -112,9 +106,7 @@ export class Agent {
             continue
           }
 
-          if (this.verbose) {
-            console.log(`Step ${currentStep} - Tool Call:`, toolCall)
-          }
+          logger.debug(`Step ${currentStep} - Tool Call:`, toolCall)
 
           if (tool.needsApproval) {
             const approved = await this.approvalFunc(tool.name, toolCall.args)
@@ -132,9 +124,7 @@ export class Agent {
           const result = await executeTool(tool, toolCall.args)
           toolCallCount++
 
-          if (this.verbose) {
-            console.log(`Step ${currentStep} - Tool Result:`, result)
-          }
+          logger.debug(`Step ${currentStep} - Tool Result:`, result)
 
           messages.push({
             role: "tool",
@@ -155,13 +145,13 @@ export class Agent {
     }
 
     if (currentStep >= this.maxSteps) {
-      console.warn(
+      logger.warn(
         `Agent ${this.name} reached max steps (${this.maxSteps}) without finishing.`,
       )
     }
 
     if (toolCallCount === 0 && currentStep === 1) {
-      console.warn(
+      logger.warn(
         `Agent ${this.name} did not call any tools. Check if the instructions are clear and if the model is capable of using the tools.`,
       )
     }
@@ -179,7 +169,7 @@ export class Agent {
 
     if (totalLength < CHAR_LIMIT) return messages
 
-    console.log(
+    logger.info(
       `\n [Context] Compressing conversation history (current: ${totalLength} characters)`,
     )
 

@@ -36,11 +36,14 @@ bun run agent [options] "Your prompt here"
 Options:
 
 - `-y, --yolo`: approve all tool calls.
-- `-v, --verbose`: show verbose logs.
+- `-v, --verbose`: show debug logs.
 - `-s, --sandbox`: run commands in sandbox.
 - `-S, --streaming`: stream model output.
 - `-d, --allowed-domains <domains>`: comma-separated domains allowed for web
   fetch.
+
+Use `-v, --verbose` or set `LOG_LEVEL=debug` to show detailed agent step and
+tool logs.
 
 ## A2A Server
 

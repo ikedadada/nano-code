@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test"
+import { afterEach, describe, expect, mock, test } from "bun:test"
 
 type QuestionHandler = (answer: string) => void
 
@@ -7,7 +7,6 @@ const closeMock = mock(() => {})
 const questionMock = mock((_prompt: string, handler: QuestionHandler) => {
   handler(nextAnswer)
 })
-const originalConsoleLog = console.log
 
 mock.module("node:readline", () => ({
   createInterface: () => ({
@@ -20,15 +19,10 @@ const { requestApproval } = await import(
   "@/infrastructure/approval/readlineApproval"
 )
 
-beforeEach(() => {
-  console.log = mock(() => {}) as typeof console.log
-})
-
 afterEach(() => {
   nextAnswer = "y"
   questionMock.mockClear()
   closeMock.mockClear()
-  console.log = originalConsoleLog
 })
 
 describe("requestApproval", () => {

@@ -1,4 +1,5 @@
 import * as readline from "node:readline"
+import { logger } from "@/infrastructure/logger/logger"
 
 export const requestApproval = async (
   toolName: string,
@@ -10,18 +11,18 @@ export const requestApproval = async (
       output: process.stdout,
     })
 
-    console.log(`\n--- Approval Request ---`)
-    console.log(` Tool: ${toolName}`)
-    console.log(` Arguments: ${JSON.stringify(args)}`)
+    logger.box("Approval Request")
+    logger.info("Tool:", toolName)
+    logger.info("Arguments:", JSON.stringify(args))
 
     rl.question("Do you approve this action? (y/n):", (answer) => {
       rl.close()
 
       if (answer.toLowerCase() === "y") {
-        console.log("Action approved.\n")
+        logger.success("Action approved.")
         resolve(true)
       } else {
-        console.log("Action denied.\n")
+        logger.fail("Action denied.")
         resolve(false)
       }
     })

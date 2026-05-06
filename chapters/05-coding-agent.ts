@@ -1,6 +1,7 @@
 import { Agent } from "@/application/agent/Agent"
 import { requestApproval } from "@/infrastructure/approval/readlineApproval"
 import { createOpenAI } from "@/infrastructure/llm/providers/openai"
+import { logger } from "@/infrastructure/logger/logger"
 import { allTools } from "@/infrastructure/tools"
 
 const openai = createOpenAI()
@@ -17,7 +18,6 @@ const codingAgent = new Agent({
   model,
   tools: allTools,
   maxSteps: 20,
-  verbose: true,
   approvalFunc: requestApproval,
 })
 
@@ -25,5 +25,5 @@ const result = await codingAgent.generate(
   "Please fix the bug in the tests/example.test.ts file and make sure all tests pass.",
 )
 
-console.log("\n=== Final Result ===")
-console.log(result.text)
+logger.box("Final Result")
+logger.log(result.text)
