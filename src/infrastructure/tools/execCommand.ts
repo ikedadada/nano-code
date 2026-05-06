@@ -2,8 +2,8 @@ import { spawn } from "node:child_process"
 import * as path from "node:path"
 import { z } from "zod"
 import { config } from "../../config"
-import { Sandbox } from "../sandbox"
-import type { Tool } from "../types"
+import type { Tool } from "../../domain/types"
+import { Sandbox } from "../process/Sandbox"
 
 const WORKSPACE_ROOT = path.resolve(process.cwd(), "./workspace")
 

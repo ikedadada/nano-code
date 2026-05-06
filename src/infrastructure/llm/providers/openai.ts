@@ -3,7 +3,6 @@ import type {
   ChatCompletion,
   ChatCompletionMessageParam,
 } from "openai/resources"
-import { parseJsonObject } from "../../helper"
 import type {
   GenerateParams,
   GenerateTextResult,
@@ -12,8 +11,9 @@ import type {
   Provider,
   StreamChunk,
   ToolCall,
-} from "../types"
-import { LLMApiError } from "../types"
+} from "../../../domain/types"
+import { LLMApiError } from "../../../domain/types"
+import { parseJsonObject } from "../../../helper"
 
 type CreateOpenAIConfig = {
   apiKey?: string
