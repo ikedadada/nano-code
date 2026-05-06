@@ -1,7 +1,7 @@
-import { editFile } from "../src/core/tools/editFile"
-import { execCommand } from "../src/core/tools/execCommand"
-import { readFile } from "../src/core/tools/readFile"
-import { writeFile } from "../src/core/tools/writeFile"
+import { editFile } from "../src/infrastructure/tools/editFile"
+import { execCommand } from "../src/infrastructure/tools/execCommand"
+import { readFile } from "../src/infrastructure/tools/readFile"
+import { writeFile } from "../src/infrastructure/tools/writeFile"
 
 async function demoTools() {
   console.log("=== Tools Demo ===\n")

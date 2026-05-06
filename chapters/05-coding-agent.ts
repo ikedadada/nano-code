@@ -1,6 +1,7 @@
-import { Agent } from "../src/core/agent"
-import { createOpenAI } from "../src/core/providers/openai"
-import { allTools } from "../src/core/tools"
+import { Agent } from "../src/application/agent/Agent"
+import { requestApproval } from "../src/infrastructure/approval/readlineApproval"
+import { createOpenAI } from "../src/infrastructure/llm/providers/openai"
+import { allTools } from "../src/infrastructure/tools"
 
 const openai = createOpenAI()
 const model = openai("gpt-5-mini")
@@ -17,6 +18,7 @@ const codingAgent = new Agent({
   tools: allTools,
   maxSteps: 20,
   verbose: true,
+  approvalFunc: requestApproval,
 })
 
 const result = await codingAgent.generate(

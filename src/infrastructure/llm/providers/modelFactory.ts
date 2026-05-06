@@ -1,4 +1,4 @@
-import type { LanguageModel } from "../types"
+import type { LanguageModel } from "../../../domain/types"
 import { createAnthropic } from "./anthropic"
 import { createGoogle } from "./google"
 import { createOpenAI } from "./openai"

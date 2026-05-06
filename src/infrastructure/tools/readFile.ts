@@ -1,8 +1,8 @@
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
 import { z } from "zod"
+import type { Tool } from "../../domain/types"
 import { isErrnoException } from "../../helper"
-import type { Tool } from "../types"
 
 const WORKSPACE_ROOT = path.resolve(process.cwd(), "./workspace")
 

@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { config } from "../../config"
-import type { Tool } from "../types"
+import type { Tool } from "../../domain/types"
 
 const webFetchExecute = async (args: { url: string }): Promise<string> => {
   const url = args.url

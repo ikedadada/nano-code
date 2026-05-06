@@ -7,7 +7,7 @@ import {
 } from "node:fs"
 import { dirname, join } from "node:path"
 import { z } from "zod"
-import type { Tool } from "../types"
+import type { Tool } from "../../domain/types"
 import { execCommand } from "./execCommand"
 
 const WORKSPACE_ROOT = join(process.cwd(), "workspace")

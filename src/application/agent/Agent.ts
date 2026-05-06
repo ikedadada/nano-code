@@ -1,6 +1,6 @@
-import { requestApproval } from "./approval"
-import { collectStreamResult, generateText } from "./generateText"
-import type { LanguageModel, Message, Tool } from "./types"
+import type { LanguageModel, Message, Tool } from "../../domain/types"
+import { collectStreamResult, generateText } from "../generation/generateText"
+import type { ApprovalPolicy } from "../ports/ApprovalPolicy"
 
 interface AgentConfig {
   name: string
@@ -10,10 +10,7 @@ interface AgentConfig {
   maxSteps?: number
   verbose?: boolean
   useStreaming?: boolean
-  approvalFunc?: (
-    toolName: string,
-    args: Record<string, unknown>,
-  ) => Promise<boolean>
+  approvalFunc: ApprovalPolicy
 }
 
 const executeTool = async (
@@ -36,10 +33,7 @@ export class Agent {
   private verbose: boolean
   private useStreaming: boolean
 
-  private approvalFunc: (
-    toolName: string,
-    args: Record<string, unknown>,
-  ) => Promise<boolean>
+  private approvalFunc: ApprovalPolicy
   constructor(config: AgentConfig) {
     this.name = config.name
     this.instructions = config.instructions
@@ -48,7 +42,7 @@ export class Agent {
     this.maxSteps = config.maxSteps ?? 5
     this.verbose = config.verbose ?? false
     this.useStreaming = config.useStreaming ?? false
-    this.approvalFunc = config.approvalFunc ?? requestApproval
+    this.approvalFunc = config.approvalFunc
   }
 
   async generate(userPrompt: string): Promise<{ text: string }> {
