@@ -1,6 +1,6 @@
 import * as path from "node:path"
 import { Command } from "commander"
-import { type RunAgentRequest, runAgent } from "../agentRunner"
+import { type RunAgentRequest, runAgent } from "@/interfaces/agentRunner"
 
 type CliOptions = {
   yolo: boolean

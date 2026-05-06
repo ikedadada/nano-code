@@ -1,9 +1,9 @@
-import { Agent } from "../application/agent/Agent"
-import { config } from "../config"
-import { requestApproval } from "../infrastructure/approval/readlineApproval"
-import { createModelFromEnv } from "../infrastructure/llm/providers/modelFactory"
-import { loadInstructions } from "../infrastructure/prompts"
-import { allTools } from "../infrastructure/tools"
+import { Agent } from "@/application/agent/Agent"
+import { config } from "@/config"
+import { requestApproval } from "@/infrastructure/approval/readlineApproval"
+import { createModelFromEnv } from "@/infrastructure/llm/providers/modelFactory"
+import { loadInstructions } from "@/infrastructure/prompts"
+import { allTools } from "@/infrastructure/tools"
 
 export type RunAgentRequest = {
   prompt: string

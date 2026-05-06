@@ -13,8 +13,8 @@ import type {
   Provider,
   StreamChunk,
   ToolCall,
-} from "../../../domain/types"
-import { LLMApiError } from "../../../domain/types"
+} from "@/domain/types"
+import { LLMApiError } from "@/domain/types"
 
 type CreateGoogleConfig = {
   apiKey?: string

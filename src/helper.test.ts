@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { isErrnoException, parseJsonObject } from "./helper"
+import { isErrnoException, parseJsonObject } from "@/helper"
 
 describe("isErrnoException", () => {
   test("returns true for Node-style errors with code", () => {

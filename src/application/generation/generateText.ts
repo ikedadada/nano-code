@@ -4,7 +4,7 @@ import type {
   LanguageModel,
   StreamChunk,
   ToolCall,
-} from "../../domain/types"
+} from "@/domain/types"
 
 type GenerateTextParams = GenerateParams & {
   model: LanguageModel

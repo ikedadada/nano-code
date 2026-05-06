@@ -13,9 +13,9 @@ import type {
   Provider,
   StreamChunk,
   ToolCall,
-} from "../../../domain/types"
-import { LLMApiError } from "../../../domain/types"
-import { parseJsonObject } from "../../../helper"
+} from "@/domain/types"
+import { LLMApiError } from "@/domain/types"
+import { parseJsonObject } from "@/helper"
 
 type CreateAnthropicConfig = {
   apiKey?: string

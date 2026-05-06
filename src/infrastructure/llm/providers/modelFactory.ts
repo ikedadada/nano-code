@@ -1,7 +1,7 @@
-import type { LanguageModel } from "../../../domain/types"
-import { createAnthropic } from "./anthropic"
-import { createGoogle } from "./google"
-import { createOpenAI } from "./openai"
+import type { LanguageModel } from "@/domain/types"
+import { createAnthropic } from "@/infrastructure/llm/providers/anthropic"
+import { createGoogle } from "@/infrastructure/llm/providers/google"
+import { createOpenAI } from "@/infrastructure/llm/providers/openai"
 
 export const createModelFromEnv = (): LanguageModel => {
   const provider = process.env.LLM_PROVIDER

@@ -1,6 +1,9 @@
-import type { LanguageModel, Message, Tool } from "../../domain/types"
-import { collectStreamResult, generateText } from "../generation/generateText"
-import type { ApprovalPolicy } from "../ports/ApprovalPolicy"
+import {
+  collectStreamResult,
+  generateText,
+} from "@/application/generation/generateText"
+import type { ApprovalPolicy } from "@/application/ports/ApprovalPolicy"
+import type { LanguageModel, Message, Tool } from "@/domain/types"
 
 interface AgentConfig {
   name: string
