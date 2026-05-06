@@ -4,13 +4,15 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "agent": "bun run src/bin/cli.ts"
+    "agent": "bun run src/bin/cli.ts",
+    "check": "biome check .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "ci": "bun run check && bun run typecheck && bun run test"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.14",
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
+    "@types/bun": "latest",
     "typescript": "^5"
   },
   "dependencies": {
