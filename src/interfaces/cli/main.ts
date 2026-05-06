@@ -1,5 +1,6 @@
 import * as path from "node:path"
 import { Command } from "commander"
+import { logger } from "@/infrastructure/logger/logger"
 import { type RunAgentRequest, runAgent } from "@/interfaces/agentRunner"
 
 type CliOptions = {
@@ -18,7 +19,7 @@ export const main = async () => {
     .description("Run the nano-code coding agent")
     .argument("[prompt...]", "prompt to send to the agent")
     .option("-y, --yolo", "approve all tool calls", false)
-    .option("-v, --verbose", "show verbose logs", false)
+    .option("-v, --verbose", "show debug logs", false)
     .option("-s, --sandbox", "run commands in sandbox", false)
     .option("-S, --streaming", "stream model output", false)
     .option(
@@ -32,11 +33,13 @@ export const main = async () => {
       process.env.ISSUE_TEXT !== undefined
 
     const userPrompt = resolvePrompt(promptParts, isIssueDriven, program)
+    if (options.verbose) {
+      logger.level = 4
+    }
 
     const request: RunAgentRequest = {
       prompt: userPrompt,
       issueDriven: isIssueDriven,
-      verbose: options.verbose,
       streaming: options.streaming,
       yolo: options.yolo,
       sandbox: options.sandbox,
@@ -44,17 +47,15 @@ export const main = async () => {
       workspaceRoot: path.resolve(process.cwd(), "workspace"),
     }
 
-    console.log("Start agent")
-    console.log("User Prompt:", userPrompt)
-    console.log(["\n", "-".repeat(60)].join(""))
+    logger.start("Start agent")
+    logger.info("User Prompt:", userPrompt)
 
     try {
       const result = await runAgent(request)
-      console.log(result.text)
-      console.log(["\n", "-".repeat(60)].join(""))
-      console.log("Finished task")
+      logger.log(result.text)
+      logger.success("Finished task")
     } catch (error) {
-      console.error("\n Unexpected error: ", error)
+      logger.error("Unexpected error:", error)
       process.exit(1)
     }
   })

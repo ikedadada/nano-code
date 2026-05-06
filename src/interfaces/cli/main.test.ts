@@ -23,6 +23,7 @@ describe("CLI", () => {
     expect(result.exitCode).toBe(0)
     expect(result.stdout).toContain("Usage: nano-code")
     expect(result.stdout).toContain("-y, --yolo")
+    expect(result.stdout).toContain("-v, --verbose")
     expect(result.stdout).toContain("-d, --allowed-domains <domains>")
   })
 

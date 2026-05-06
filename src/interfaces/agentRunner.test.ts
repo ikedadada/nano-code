@@ -29,7 +29,6 @@ describe("runAgent", () => {
       runAgent({
         prompt: "hello",
         issueDriven: false,
-        verbose: false,
         streaming: false,
         yolo: false,
         sandbox: true,

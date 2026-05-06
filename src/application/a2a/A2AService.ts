@@ -66,7 +66,6 @@ export class A2AService {
     const result = await this.config.runAgent({
       prompt,
       issueDriven: false,
-      verbose: false,
       streaming: false,
       yolo: true,
       sandbox: this.config.sandbox,

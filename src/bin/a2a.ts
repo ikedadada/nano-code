@@ -1,5 +1,6 @@
+import { logger } from "@/infrastructure/logger/logger"
 import { serveA2A } from "@/interfaces/a2a/server"
 
 const server = serveA2A()
 
-console.log(`A2A server listening on ${server.url}`)
+logger.withTag("a2a").ready(`Server listening on ${server.url}`)
