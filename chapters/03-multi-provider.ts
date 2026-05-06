@@ -1,8 +1,8 @@
-import { generateText } from "../src/application/generation/generateText"
-import type { Message } from "../src/domain/types"
-import { createAnthropic } from "../src/infrastructure/llm/providers/anthropic"
-import { createGoogle } from "../src/infrastructure/llm/providers/google"
-import { createOpenAI } from "../src/infrastructure/llm/providers/openai"
+import { generateText } from "@/application/generation/generateText"
+import type { Message } from "@/domain/types"
+import { createAnthropic } from "@/infrastructure/llm/providers/anthropic"
+import { createGoogle } from "@/infrastructure/llm/providers/google"
+import { createOpenAI } from "@/infrastructure/llm/providers/openai"
 
 const messages: Message[] = [
   { role: "user", content: "AIエージェントとは何ですか?" },

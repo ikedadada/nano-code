@@ -1,3 +1,3 @@
-import { main } from "../interfaces/cli/main"
+import { main } from "@/interfaces/cli/main"
 
 main()

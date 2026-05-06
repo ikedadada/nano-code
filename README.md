@@ -21,6 +21,9 @@ The intended dependency direction is:
 Infrastructure implementations are wired at the interface/composition boundary
 and should not be imported by application use cases directly.
 
+Imports for files under `src` should use the `@/*` path alias, which resolves to
+`src/*`.
+
 CLI code should adapt command-line input into a CLI-independent interface
 request, call the interface runner, and render the response.
 
