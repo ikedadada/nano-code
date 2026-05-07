@@ -12,6 +12,28 @@ export type A2AMessage = {
   parts: A2APart[]
 }
 
+export type A2AArtifact = {
+  artifactId?: string
+  parts?: unknown[]
+  metadata?: Record<string, unknown>
+}
+
+export type A2ATaskStatus = {
+  state: string
+  message?: unknown
+  timestamp?: string
+}
+
+export type A2ATask = {
+  kind?: "task"
+  id: string
+  contextId?: string
+  status?: A2ATaskStatus
+  artifacts?: A2AArtifact[]
+  history?: unknown[]
+  metadata?: Record<string, unknown>
+}
+
 export type A2AAgentSkill = {
   id: string
   name: string

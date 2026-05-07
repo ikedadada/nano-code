@@ -68,3 +68,29 @@ Environment variables:
 
 A2A requests run non-interactively after authentication, so tool approval is
 automatically granted for authenticated requests.
+
+## Calling Remote A2A Agents
+
+Remote A2A agents are discovered from Agent Card URLs and exposed to the model
+as skill-specific tools. Available agents are listed in
+`src/infrastructure/a2a/agents.json`; agents whose Agent Card cannot be fetched
+at startup are skipped.
+
+Agent catalog fields:
+
+- `id`: stable local identifier used in generated tool names.
+- `agentCardUrl`: Agent Card URL.
+- `endpointUrl`: optional JSON-RPC invocation endpoint override.
+- `bearerTokenEnv`: optional environment variable name for a bearer token.
+
+Docker Agent smoke test:
+
+```sh
+docker agent serve a2a agentcatalog/pirate --env-from-file .env
+```
+
+In another terminal:
+
+```sh
+bun run agent -v -y "Ask the pirate A2A agent to say hello"
+```
