@@ -12,12 +12,22 @@ const originalEnv = {
   LLM_MODEL: process.env.LLM_MODEL,
 }
 
+const restoreEnv = (key: keyof typeof originalEnv) => {
+  const value = originalEnv[key]
+  if (value === undefined) {
+    delete process.env[key]
+    return
+  }
+
+  process.env[key] = value
+}
+
 afterEach(() => {
   config.sandbox = originalConfig.sandbox
   config.allowedDomains = [...originalConfig.allowedDomains]
 
-  process.env.LLM_PROVIDER = originalEnv.LLM_PROVIDER
-  process.env.LLM_MODEL = originalEnv.LLM_MODEL
+  restoreEnv("LLM_PROVIDER")
+  restoreEnv("LLM_MODEL")
 })
 
 describe("runAgent", () => {

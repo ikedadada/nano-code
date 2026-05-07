@@ -1,9 +1,11 @@
 import { Agent } from "@/application/agent/Agent"
 import { config } from "@/config"
+import { A2AAgentRegistry } from "@/infrastructure/a2a/A2AAgentRegistry"
+import { loadA2AAgentSources } from "@/infrastructure/a2a/loadA2AAgentSources"
 import { requestApproval } from "@/infrastructure/approval/readlineApproval"
 import { createModelFromEnv } from "@/infrastructure/llm/providers/modelFactory"
 import { loadInstructions } from "@/infrastructure/prompts"
-import { allTools } from "@/infrastructure/tools"
+import { createTools } from "@/infrastructure/tools"
 
 export type RunAgentRequest = {
   prompt: string
@@ -31,12 +33,17 @@ export const runAgent = async (
     request.workspaceRoot,
     request.issueDriven,
   )
+  const a2aAgentSources = loadA2AAgentSources()
+  const a2aRegistry =
+    a2aAgentSources.length > 0
+      ? await A2AAgentRegistry.discover(a2aAgentSources)
+      : undefined
 
   const agent = new Agent({
     name: "nano-code",
     model,
     instructions,
-    tools: allTools,
+    tools: createTools({ a2aRegistry }),
     maxSteps: 20,
     verbose: request.verbose,
     useStreaming: request.streaming,
