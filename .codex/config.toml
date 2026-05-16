@@ -1,0 +1,9 @@
+approval_policy = "untrusted"
+sandbox_mode = "workspace-write"
+default_permissions = "local"
+
+[permissions.local.filesystem]
+":project_roots" = {
+  "." = "write",
+  ".env" = "none"
+}
