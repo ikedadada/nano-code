@@ -13,7 +13,7 @@ const SAFE_ENV = {
   LANG: process.env.LANG || "C.UTF-8",
 }
 
-const ALLOWED_COMMANDS = ["bun", "ls", "git", "gh", "curl"]
+const ALLOWED_COMMANDS = ["bun", "ls", "git", "gh"]
 
 const MAX_OUTPUT_LENGTH = 2024
 
@@ -73,6 +73,26 @@ const parseCommand = (input: string): string[] => {
   return tokens
 }
 
+const validateAllowedCommandArgs = (
+  commandName: string,
+  commandArgs: string[],
+): void => {
+  if (commandName === "bun") {
+    const allowedBunCommands = [["--version"], ["-v"]]
+    const isAllowed = allowedBunCommands.some(
+      (allowedArgs) =>
+        allowedArgs.length === commandArgs.length &&
+        allowedArgs.every((arg, index) => commandArgs[index] === arg),
+    )
+
+    if (!isAllowed) {
+      throw new Error(
+        'Command "bun" is restricted to "--version" or "-v"',
+      )
+    }
+  }
+}
+
 const execCommandExecute = async (args: ExecCommandArgs): Promise<string> => {
   let commandName: string
   let commandArgs: string[]
@@ -109,6 +129,8 @@ const execCommandExecute = async (args: ExecCommandArgs): Promise<string> => {
       `Command "${commandName}" is not allowed. Allowed commands are: ${ALLOWED_COMMANDS.join(", ")}`,
     )
   }
+
+  validateAllowedCommandArgs(commandName, commandArgs)
 
   for (const arg of commandArgs) {
     if (arg.includes("/") || arg.includes("\\")) {
@@ -214,7 +236,7 @@ export const execCommand: Tool = {
   name: "execCommand",
   description: [
     "Executes a shell command and returns its output as a string.",
-    "Only a limited set of safe commands are allowed (bun, ls, git, gh, curl).",
+    "Only a limited set of safe commands are allowed (bun --version, bun -v, ls, git, gh).",
     "Commands must not contain dangerous characters (e.g., ; & ` $) to prevent command injection.",
     "Arguments that resolve to paths must be within the workspace.",
     "Output is limited to 2024 characters to prevent excessive token usage.",
