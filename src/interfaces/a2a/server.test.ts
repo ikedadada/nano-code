@@ -14,6 +14,60 @@ const createApp = () => {
 }
 
 describe("A2A server app", () => {
+  test("requires A2A_AUTH_TOKEN by default", () => {
+    expect(() =>
+      createA2AApp({
+        env: {},
+        workspaceRoot: "/workspace",
+        runAgent: async (request) => ({ text: `answer:${request.prompt}` }),
+      }),
+    ).toThrow("A2A_AUTH_TOKEN is required")
+  })
+
+  test("allows explicit unsafe no-auth mode only as local A2A", async () => {
+    const app = createA2AApp({
+      env: {
+        A2A_UNSAFE_ALLOW_NO_AUTH: "true",
+        A2A_AGENT_URL: "http://example.com/a2a",
+        HOST: "0.0.0.0",
+        PORT: "8787",
+      },
+      workspaceRoot: "/workspace",
+      runAgent: async (request) => ({ text: `answer:${request.prompt}` }),
+    })
+
+    const agentCardResponse = await app.request("/.well-known/agent-card.json")
+    const agentCard = await agentCardResponse.json()
+    expect(agentCard).toMatchObject({
+      url: "http://127.0.0.1:8787/a2a",
+    })
+    expect(agentCard.security).toBeUndefined()
+
+    const response = await app.request("/a2a", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: "req-1",
+        method: "message/send",
+        params: {
+          message: {
+            role: "user",
+            messageId: "msg-1",
+            parts: [{ kind: "text", text: "hello" }],
+          },
+        },
+      }),
+    })
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toMatchObject({
+      result: {
+        parts: [{ kind: "text", text: "answer:hello" }],
+      },
+    })
+  })
+
   test("serves the well-known agent card", async () => {
     const app = createApp()
     const response = await app.request("/.well-known/agent-card.json")
