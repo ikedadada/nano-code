@@ -5,7 +5,7 @@ const bearerAuthSecurityScheme = {
   type: "http",
   scheme: "bearer",
   bearerFormat: "opaque",
-  description: "Required for POST /a2a when A2A_AUTH_TOKEN is configured.",
+  description: "Required for POST /a2a.",
 } as const
 
 export const a2aOpenApiConfig = {

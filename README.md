@@ -64,8 +64,11 @@ Environment variables:
   `localhost`.
 - `A2A_AGENT_URL`: explicit Agent Card service URL, default
   `http://{HOST}:{PORT}/a2a`.
-- `A2A_AUTH_TOKEN`: optional Bearer token required by `POST /a2a`. When set,
-  the Agent Card declares `bearerAuth` in `securitySchemes` and `security`.
+- `A2A_AUTH_TOKEN`: Bearer token required by `POST /a2a`. When set, the Agent
+  Card declares `bearerAuth` in `securitySchemes` and `security`.
+- `A2A_UNSAFE_ALLOW_NO_AUTH`: set to `true` to allow unauthenticated local
+  development only. Without `A2A_AUTH_TOKEN`, the server binds and advertises
+  `127.0.0.1` and ignores `A2A_AGENT_URL`.
 - `A2A_SANDBOX`: set to `true` to run tool commands through the sandbox.
 - `A2A_ALLOWED_DOMAINS`: comma-separated domains allowed for web fetch.
 

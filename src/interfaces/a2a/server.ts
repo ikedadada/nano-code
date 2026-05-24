@@ -22,15 +22,36 @@ type A2AAppOptions = {
   workspaceRoot?: string
 }
 
+const LOCAL_ONLY_HOST = "127.0.0.1"
+const UNSAFE_NO_AUTH_ENV = "A2A_UNSAFE_ALLOW_NO_AUTH"
+
+const getA2AServerConfig = (env: NodeJS.ProcessEnv) => {
+  const bearerToken = env.A2A_AUTH_TOKEN?.trim() || undefined
+  const unsafeNoAuth = env[UNSAFE_NO_AUTH_ENV] === "true"
+
+  if (!bearerToken && !unsafeNoAuth) {
+    throw new Error(
+      `A2A_AUTH_TOKEN is required to serve A2A. Set ${UNSAFE_NO_AUTH_ENV}=true only for local development.`,
+    )
+  }
+
+  const port = Number(env.PORT ?? 3000)
+  const host =
+    unsafeNoAuth && !bearerToken ? LOCAL_ONLY_HOST : (env.HOST ?? "localhost")
+  const agentUrl =
+    unsafeNoAuth && !bearerToken
+      ? `http://${host}:${port}/a2a`
+      : (env.A2A_AGENT_URL ?? `http://${host}:${port}/a2a`)
+
+  return { port, host, agentUrl, bearerToken }
+}
+
 export const createA2AApp = ({
   env = process.env,
   runAgent = defaultRunAgent,
   workspaceRoot = path.resolve(process.cwd(), "workspace"),
 }: A2AAppOptions = {}) => {
-  const port = Number(env.PORT ?? 3000)
-  const host = env.HOST ?? "localhost"
-  const agentUrl = env.A2A_AGENT_URL ?? `http://${host}:${port}/a2a`
-  const bearerToken = env.A2A_AUTH_TOKEN
+  const { agentUrl, bearerToken } = getA2AServerConfig(env)
   const allowedDomains =
     env.A2A_ALLOWED_DOMAINS?.split(",")
       .map((domain) => domain.trim())
@@ -64,11 +85,12 @@ export const createA2AApp = ({
 }
 
 export const serveA2A = () => {
-  const port = Number(process.env.PORT ?? 3000)
+  const { port, host, bearerToken } = getA2AServerConfig(process.env)
   const app = createA2AApp()
 
   return Bun.serve({
     port,
+    ...(!bearerToken && { hostname: host }),
     fetch: app.fetch,
   })
 }
