@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test"
+import type { A2AAgentCard } from "@/domain/a2a"
 import { a2aOpenApiConfig } from "@/interfaces/a2a/controllers/docsController"
 import { createA2AApp } from "@/interfaces/a2a/server"
 
@@ -37,7 +38,7 @@ describe("A2A server app", () => {
     })
 
     const agentCardResponse = await app.request("/.well-known/agent-card.json")
-    const agentCard = await agentCardResponse.json()
+    const agentCard = (await agentCardResponse.json()) as A2AAgentCard
     expect(agentCard).toMatchObject({
       url: "http://127.0.0.1:8787/a2a",
     })
