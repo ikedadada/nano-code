@@ -86,9 +86,7 @@ const validateAllowedCommandArgs = (
     )
 
     if (!isAllowed) {
-      throw new Error(
-        'Command "bun" is restricted to "--version" or "-v"',
-      )
+      throw new Error('Command "bun" is restricted to "--version" or "-v"')
     }
   }
 }
